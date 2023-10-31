@@ -373,6 +373,18 @@ int main()
     hexCoord oldPlayer = (hexCoord){0,0,0};
     float moveLerp = 1;
 
+    const int viewRadius = 6;
+    const int viewArcsCount = 3 * viewRadius * (viewRadius+1)/2;
+    printf("View arc count %d\n", viewArcsCount);
+    Vector2 viewArcs[viewArcsCount];
+    for (int i = 0; i < viewArcsCount; i++)
+    {
+        viewArcs[i] = (Vector2){-1,-1};
+    }
+    bool testeridoodle = true;
+
+    hexCoord tilesToDraw[6 * viewRadius * (viewRadius+1)/2 + 1];
+
     while (!WindowShouldClose())
     {
         if (IsKeyDown(KEY_UP))
@@ -461,8 +473,118 @@ int main()
 
         BeginDrawing();
         ClearBackground(BLACK);
+
+        int tileCount;
+
+        // visit every tile within i radius
+        if(testeridoodle)
+        {
+        for (int i = 0; i < viewArcsCount; i++)
+        {   
+            viewArcs[i] = (Vector2){-1,-1};
+        }
+        puts("");
+        int arcIndex = 0;
+        for (int i = 1; i < viewRadius; i++)
+        {
+            printf("Ring: %d\n", i);
+            hexCoord a = hexCoordAdd((hexCoord){-i,i,0},player);
+            for (int j = 0; j < 6; j++)
+            {
+                for (int k = 0; k < i; k++)
+                {
+                    hexCoord b = hexCoordAdd(a, directionToCoords[j]);
+                    if (GetTile(a) == TILETYPE_WALL)
+                    {
+                        if (viewArcs[arcIndex].y == -1)
+                        {
+                            viewArcs[arcIndex].y = atan2(HexCoordToVector(a).x, HexCoordToVector(a).y);// + 2*PI*(atan2(HexCoordToVector(a).x, HexCoordToVector(a).y) < 0);
+                        }
+                        if (GetTile(b) != TILETYPE_WALL)
+                        {
+                            arcIndex++;
+                            viewArcs[arcIndex].x = atan2(HexCoordToVector(a).x, HexCoordToVector(a).y);// + 2*PI*(atan2(HexCoordToVector(a).x, HexCoordToVector(a).y) < 0);
+                        }
+                    }
+                    if (k == i-1 && j == 5)
+                    {
+                        if (viewArcs[arcIndex].x == -1)
+                        {
+                            viewArcs[3 * (i-1) * i/2] = (Vector2){0*DEG2RAD,360*DEG2RAD};
+                            printf("clear, arcIndex: %d 0:%d\n", arcIndex, 3 * (i-1) * i/2);
+                        }
+                        else
+                        {
+                            viewArcs[3 * (i-1) * i/2].x = viewArcs[arcIndex].x;
+                            viewArcs[arcIndex].x = -1;
+                        }
+                    }
+                    a = b;
+                }
+            }
+            
+            arcIndex = 3 * i * (i+1)/2;
+        }
+        for (int j = 16; j < viewArcsCount; j++)
+        {
+            switch (j)
+            {
+            case 3:
+            case 9:
+            case 18:
+            case 30:
+            case 45:
+            case 63:
+            case 84:
+            case 108:
+            case 135:
+            case 165:
+                printf("Next circle, arcIndex: %d\n", j);
+                break;
+            default:
+                break;
+            }
+            printf("%d: %f, %f\n", j, RAD2DEG * viewArcs[j].x, RAD2DEG * viewArcs[j].y);
+        }
+            tilesToDraw[0] = player;
+            tileCount = 1;
+            for (int i = 1; i < viewRadius; i++)
+            {
+                hexCoord a = hexCoordAdd((hexCoord){-i,i,0},player);
+                for (int j = 0; j < 6; j++)
+                {
+                    for (int k = 0; k < i; k++)
+                    {
+                        float angle = atan2(HexCoordToVector(a).x, HexCoordToVector(a).y);
+                        for (int l = 3 * (i-1) * i/2; l < 3 * i * (i+1)/2; l++)
+                        {
+                            if (viewArcs[l].x != -1 && viewArcs[l].y != -1)
+                            {
+                                if (angle >= viewArcs[l].x && angle <= viewArcs[l].y)
+                                {
+                                    tilesToDraw[tileCount] = a;
+                                    tileCount++;
+                                    break;
+                                }
+                            }
+                        }
+                        a = hexCoordAdd(a, directionToCoords[j]);
+                    }
+                }
+            }
+            
+
+         testeridoodle = false;
+        }        
         
-        int visionRadius = 7;
+        for (int i = 0; i < tileCount; i++)
+        {
+            DrawPoly(HexCoordToCameraVector(tilesToDraw[i]), 6, tileRadius, 30, tileColors[GetTile(tilesToDraw[i])]);
+            DrawPolyLines(HexCoordToCameraVector(tilesToDraw[i]), 6, tileRadius, 30, BLACK);
+        }
+        
+
+        /* int visionRadius = 21;
         for (int k = 0; k < mapRadius; k++)
         {
             for (int l = 0; l < mapRadius; l++)
@@ -474,9 +596,9 @@ int main()
                     DrawPolyLines(HexCoordToCameraVector(IndexToHexCoord(k, l)), 6, tileRadius, 30, BLACK);
                 }
             }
-        }
+        } */
         DrawCircleV(Vector2Lerp(HexCoordToCameraVector(oldPlayer),HexCoordToCameraVector(player),moveLerp), tileRadius*0.8, (Color){255,0,0,255});
-        for (int i = 0; i < mapRadius; i++)
+        /* for (int i = 0; i < mapRadius; i++)
         {
             for (int j = 0; j < mapRadius; j++)
             {
@@ -491,8 +613,8 @@ int main()
                     }
                 }
             }
-        }
-        for (int i = 0; i < mapRadius; i++)
+        } */
+        /* for (int i = 0; i < mapRadius; i++)
         {
             for (int j = 0; j < mapRadius; j++)
             {
@@ -506,7 +628,7 @@ int main()
                     }
                 }
             }
-        }
+        } */
         /* for (int i = 0; i < mapRadius; i++)
         {
             for (int j = 0; j < mapRadius; j++)
@@ -546,6 +668,30 @@ int main()
                 }
             }
         } */
+
+        // visit every tile within i radius
+        for (int i = 1; i < viewRadius; i++)
+        {
+            hexCoord a = (hexCoord){-i,i,0};
+            for (int j = 0; j < 6; j++)
+            {
+                for (int k = 0; k < i; k++)
+                {
+                    hexCoord b = hexCoordAdd(a, directionToCoords[j]);
+                    DrawText(TextFormat("%d",j*i+k), HexCoordToCameraVector(a).x-tileRadius*0.5, HexCoordToCameraVector(a).y-tileRadius*0.8, tileRadius, (Color){0,0,0,20});
+                    a = b;
+                }
+            }
+        }
+
+        for (int i = 0; i < viewArcsCount; i++)
+        {
+            if (viewArcs[i].x != -1)
+            {
+                DrawRing(HexCoordToCameraVector(player), tileRadius+i*10,tileRadius+i*10+40, viewArcs[i].x*RAD2DEG, viewArcs[i].y*RAD2DEG, 30, ColorFromHSV(i*20,1,1));
+                DrawRingLines(HexCoordToCameraVector(player), tileRadius+i*10,tileRadius+i*10+40, viewArcs[i].x*RAD2DEG, viewArcs[i].y*RAD2DEG, 30, BLACK);
+            }
+        }
 
         DrawFPS(10, 30);
 
