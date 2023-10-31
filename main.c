@@ -58,9 +58,14 @@ hexCoord IndexToHexCoord(int q, int r)
     return (hexCoord){q, r, -q - r};
 }
 
-hexCoord hexCoordAdd(hexCoord a, hexCoord b)
+hexCoord HexCoordAdd(hexCoord a, hexCoord b)
 {
     return (hexCoord){a.q + b.q, a.r + b.r, a.s + b.s};
+}
+
+hexCoord hexCoordSubtract(hexCoord a, hexCoord b)
+{
+    return (hexCoord){a.q - b.q, a.r - b.r, a.s - b.s};
 }
 
 typedef struct ant
@@ -102,9 +107,9 @@ int main()
     int collisions[antCount];
     for (int i = 0; i < antCount; i++)
     {
-        int a = ((mapRadius/2)-roomRadius-5);
+        int a = ((mapRadius / 2) - roomRadius - 5);
         int q = GetRandomValue(-a, a);
-        int r = GetRandomValue(-a - (q * (q < 0)), a -(q * (q > 0)));
+        int r = GetRandomValue(-a - (q * (q < 0)), a - (q * (q > 0)));
 
         ants[i] = (ant){(hexCoord){q, r, -q - r}, GetRandomValue(0, 5), true};
         printf("ant %d: q: %d, r: %d, s: %d\n", i, ants[i].position.q, ants[i].position.r, ants[i].position.s);
@@ -131,15 +136,12 @@ int main()
                 }
                 ants[i].direction %= 6;
 
-                ants[i].position.q += directionToCoords[ants[i].direction].q;
-                ants[i].position.r += directionToCoords[ants[i].direction].r;
-                ants[i].position.s += directionToCoords[ants[i].direction].s;
+                ants[i].position = HexCoordAdd(ants[i].position, directionToCoords[ants[i].direction]);
 
                 if (
-                    abs(ants[i].position.q) > mapRadius/2 -1 ||
-                    abs(ants[i].position.r) > mapRadius/2 -1 ||
-                    abs(ants[i].position.s) > mapRadius/2 -1
-                )
+                    abs(ants[i].position.q) > mapRadius / 2 - 1 ||
+                    abs(ants[i].position.r) > mapRadius / 2 - 1 ||
+                    abs(ants[i].position.s) > mapRadius / 2 - 1)
                 {
                     ants[i].position.q -= directionToCoords[ants[i].direction].q;
                     ants[i].position.r -= directionToCoords[ants[i].direction].r;
@@ -147,19 +149,19 @@ int main()
                     ants[i].direction = (ants[i].direction + 3) % 6;
                 }
 
-                if (abs(ants[i].position.q) > mapRadius/2)
+                if (abs(ants[i].position.q) > mapRadius / 2)
                 {
                     ants[i].alive = false;
                     printf("ant escaped q%d\n", ants[i].position.q);
                     continue;
                 }
-                if (abs(ants[i].position.r) > mapRadius/2)
+                if (abs(ants[i].position.r) > mapRadius / 2)
                 {
                     ants[i].alive = false;
                     printf("ant escaped r%d\n", ants[i].position.r);
                     continue;
                 }
-                if (abs(ants[i].position.s) > mapRadius/2)
+                if (abs(ants[i].position.s) > mapRadius / 2)
                 {
                     ants[i].alive = false;
                     printf("ant escaped s%d\n", ants[i].position.s);
@@ -188,7 +190,6 @@ int main()
             }
         }
 
-
         aliveAnts = 0;
         for (int i = 0; i < antCount; i++)
         {
@@ -209,7 +210,7 @@ int main()
             if (collisions[j] == i)
             {
                 collisions[j] = collisions[i];
-            }   
+            }
         }
     }
     for (int i = 0; i < antCount; i++)
@@ -227,13 +228,13 @@ int main()
 
     for (int i = 0; i < antCount; i++)
     {
-        for (int j = i+1; j < antCount; j++)
+        for (int j = i + 1; j < antCount; j++)
         {
             if (collisions[j] == collisions[i] && collisions[j] >= 0)
             {
                 collisions[j] = -collisions[j];
             }
-        }    
+        }
     }
 
     for (int i = 0; i < antCount; i++)
@@ -244,18 +245,18 @@ int main()
         }
     }
     printf("\n");
-    
+
     for (int i = 0; i < antCount; i++)
     {
         if (collisions[i] >= 0)
-        {    
+        {
             ant a = ants[collisions[i]];
             while (a.alive)
             {
                 printf("updating ant %d ", collisions[i]);
-                if(a.position.q != 0 && a.position.r != 0)
+                if (a.position.q != 0 && a.position.r != 0)
                 {
-                    hexCoord b = (hexCoord){a.position.q > 0? -1:1, a.position.r > 0? -1:1, a.position.s > 0? -1:1};
+                    hexCoord b = (hexCoord){a.position.q > 0 ? -1 : 1, a.position.r > 0 ? -1 : 1, a.position.s > 0 ? -1 : 1};
                     if (abs(a.position.q) < abs(a.position.r))
                     {
                         if (abs(a.position.q) < abs(a.position.s))
@@ -285,37 +286,37 @@ int main()
 
                     switch (GetTile(a.position))
                     {
-                        case -1:
-                        {
-                            SetTile(a.position, collisions[i]);
-                        }
+                    case -1:
+                    {
+                        SetTile(a.position, collisions[i]);
+                    }
+                    break;
+                    case -2:
                         break;
-                        case -2:
-                        break;
-                        default:
+                    default:
+                    {
+                        /* if (abs(collisions[GetTile(a.position)]) != i)
                         {
-                            /* if (abs(collisions[GetTile(a.position)]) != i)
-                            {
-                                //a.alive = false;
-                                //puts("ant died");
-                                SetTile(a.position, -3);
-                            } */
-                        }
+                            //a.alive = false;
+                            //puts("ant died");
+                            SetTile(a.position, -3);
+                        } */
+                    }
                     }
 
-                    if (abs(a.position.q) > mapRadius/2)
+                    if (abs(a.position.q) > mapRadius / 2)
                     {
                         a.alive = false;
                         printf("ant escaped q%d\n", a.position.q);
                         continue;
                     }
-                    if (abs(a.position.r) > mapRadius/2)
+                    if (abs(a.position.r) > mapRadius / 2)
                     {
                         a.alive = false;
                         printf("ant escaped r%d\n", a.position.r);
                         continue;
                     }
-                    if (abs(a.position.s) > mapRadius/2)
+                    if (abs(a.position.s) > mapRadius / 2)
                     {
                         a.alive = false;
                         printf("ant escaped s%d\n", a.position.s);
@@ -348,16 +349,16 @@ int main()
                     for (int l = 0; l < mapRadius; l++)
                     {
                         hexCoord b = IndexToHexCoord(k, l);
-                        if (abs(a.q - b.q) < roomRadius && abs(a.r - b.r) < roomRadius && abs(a.s - b.s) < roomRadius && abs(b.q) < mapRadius/2 && abs(b.r) < mapRadius/2 && abs(b.s) < mapRadius/2)
+                        if (abs(a.q - b.q) < roomRadius && abs(a.r - b.r) < roomRadius && abs(a.s - b.s) < roomRadius && abs(b.q) < mapRadius / 2 && abs(b.r) < mapRadius / 2 && abs(b.s) < mapRadius / 2)
                         {
                             SetTile(b, TILETYPE_FLOOR);
                         }
                     }
                 }
-                
+
                 // SetTile(IndexToHexCoord(i, j), TILETYPE_HOLE);
             }
-                break;
+            break;
             case -3:
                 SetTile(IndexToHexCoord(i, j), TILETYPE_NONE);
                 break;
@@ -366,24 +367,23 @@ int main()
                 break;
             }
         }
-        
     }
 
-    hexCoord player = (hexCoord){0,0,0};
-    hexCoord oldPlayer = (hexCoord){0,0,0};
+    hexCoord player = (hexCoord){0, 0, 0};
+    hexCoord oldPlayer = (hexCoord){0, 0, 0};
     float moveLerp = 1;
 
     const int viewRadius = 6;
-    const int viewArcsCount = 3 * viewRadius * (viewRadius+1)/2;
+    const int viewArcsCount = 3 * viewRadius * (viewRadius + 1) / 2;
     printf("View arc count %d\n", viewArcsCount);
     Vector2 viewArcs[viewArcsCount];
     for (int i = 0; i < viewArcsCount; i++)
     {
-        viewArcs[i] = (Vector2){-1,-1};
+        viewArcs[i] = (Vector2){-1, -1};
     }
-    bool testeridoodle = true;
+    bool reRenderFOV = true;
 
-    hexCoord tilesToDraw[6 * viewRadius * (viewRadius+1)/2 + 1];
+    hexCoord tilesToDraw[6 * viewRadius * (viewRadius + 1) / 2 + 1];
 
     while (!WindowShouldClose())
     {
@@ -412,41 +412,46 @@ int main()
             tileRadius *= 1 - GetFrameTime();
         }
 
-        if (IsKeyDown(KEY_S) && GetTile(hexCoordAdd(player,directionToCoords[0])) != TILETYPE_WALL && moveLerp >= 1)
+        if (IsKeyDown(KEY_S) && GetTile(HexCoordAdd(player, directionToCoords[0])) != TILETYPE_WALL && moveLerp >= 1)
         {
             oldPlayer = player;
-            player = hexCoordAdd(player,directionToCoords[0]);
+            player = HexCoordAdd(player, directionToCoords[0]);
             moveLerp = 0;
         }
-        if (IsKeyDown(KEY_D) && GetTile(hexCoordAdd(player,directionToCoords[1])) != TILETYPE_WALL && moveLerp >= 1)
+        if (IsKeyDown(KEY_D) && GetTile(HexCoordAdd(player, directionToCoords[1])) != TILETYPE_WALL && moveLerp >= 1)
         {
             oldPlayer = player;
-            player = hexCoordAdd(player,directionToCoords[1]);
+            player = HexCoordAdd(player, directionToCoords[1]);
             moveLerp = 0;
         }
-        if (IsKeyDown(KEY_E) && GetTile(hexCoordAdd(player,directionToCoords[2])) != TILETYPE_WALL && moveLerp >= 1)
+        if (IsKeyDown(KEY_E) && GetTile(HexCoordAdd(player, directionToCoords[2])) != TILETYPE_WALL && moveLerp >= 1)
         {
             oldPlayer = player;
-            player = hexCoordAdd(player,directionToCoords[2]);
+            player = HexCoordAdd(player, directionToCoords[2]);
             moveLerp = 0;
         }
-        if (IsKeyDown(KEY_W) && GetTile(hexCoordAdd(player,directionToCoords[3])) != TILETYPE_WALL && moveLerp >= 1)
+        if (IsKeyDown(KEY_W) && GetTile(HexCoordAdd(player, directionToCoords[3])) != TILETYPE_WALL && moveLerp >= 1)
         {
             oldPlayer = player;
-            player = hexCoordAdd(player,directionToCoords[3]);
+            player = HexCoordAdd(player, directionToCoords[3]);
             moveLerp = 0;
         }
-        if (IsKeyDown(KEY_Q) && GetTile(hexCoordAdd(player,directionToCoords[4])) != TILETYPE_WALL && moveLerp >= 1)
+        if (IsKeyDown(KEY_Q) && GetTile(HexCoordAdd(player, directionToCoords[4])) != TILETYPE_WALL && moveLerp >= 1)
         {
             oldPlayer = player;
-            player = hexCoordAdd(player,directionToCoords[4]);
+            player = HexCoordAdd(player, directionToCoords[4]);
             moveLerp = 0;
         }
-        if (IsKeyDown(KEY_A) && GetTile(hexCoordAdd(player,directionToCoords[5])) != TILETYPE_WALL && moveLerp >= 1)
+        if (IsKeyDown(KEY_A) && GetTile(HexCoordAdd(player, directionToCoords[5])) != TILETYPE_WALL && moveLerp >= 1)
         {
             oldPlayer = player;
-            player = hexCoordAdd(player,directionToCoords[5]);
+            player = HexCoordAdd(player, directionToCoords[5]);
             moveLerp = 0;
+        }
+
+        if (moveLerp == 0)
+        {
+            reRenderFOV = true;
         }
 
         /* for (int i = 0; i < 20; i++)
@@ -462,13 +467,13 @@ int main()
 
         if (moveLerp < 1)
         {
-            moveLerp += GetFrameTime()*5;
-            cameraPos = Vector2Lerp(Vector2Add(Vector2Scale(HexCoordToVector(oldPlayer), -1),(Vector2){GetScreenWidth()/2,GetScreenHeight()/2}),Vector2Add(Vector2Scale(HexCoordToVector(player), -1),(Vector2){GetScreenWidth()/2,GetScreenHeight()/2}),moveLerp);
+            moveLerp += GetFrameTime() * 5;
+            cameraPos = Vector2Lerp(Vector2Add(Vector2Scale(HexCoordToVector(oldPlayer), -1), (Vector2){GetScreenWidth() / 2, GetScreenHeight() / 2}), Vector2Add(Vector2Scale(HexCoordToVector(player), -1), (Vector2){GetScreenWidth() / 2, GetScreenHeight() / 2}), moveLerp);
         }
         else
         {
             moveLerp = 1;
-            cameraPos = Vector2Add(Vector2Scale(HexCoordToVector(player), -1),(Vector2){GetScreenWidth()/2,GetScreenHeight()/2});
+            cameraPos = Vector2Add(Vector2Scale(HexCoordToVector(player), -1), (Vector2){GetScreenWidth() / 2, GetScreenHeight() / 2});
         }
 
         BeginDrawing();
@@ -477,90 +482,90 @@ int main()
         int tileCount;
 
         // visit every tile within i radius
-        if(testeridoodle)
+        if (reRenderFOV)
         {
-        for (int i = 0; i < viewArcsCount; i++)
-        {   
-            viewArcs[i] = (Vector2){-1,-1};
-        }
-        puts("");
-        int arcIndex = 0;
-        for (int i = 1; i < viewRadius; i++)
-        {
-            printf("Ring: %d\n", i);
-            hexCoord a = hexCoordAdd((hexCoord){-i,i,0},player);
-            for (int j = 0; j < 6; j++)
+            for (int i = 0; i < viewArcsCount; i++)
             {
-                for (int k = 0; k < i; k++)
-                {
-                    hexCoord b = hexCoordAdd(a, directionToCoords[j]);
-                    if (GetTile(a) == TILETYPE_WALL)
-                    {
-                        if (viewArcs[arcIndex].y == -1)
-                        {
-                            viewArcs[arcIndex].y = atan2(HexCoordToVector(a).x, HexCoordToVector(a).y);// + 2*PI*(atan2(HexCoordToVector(a).x, HexCoordToVector(a).y) < 0);
-                        }
-                        if (GetTile(b) != TILETYPE_WALL)
-                        {
-                            arcIndex++;
-                            viewArcs[arcIndex].x = atan2(HexCoordToVector(a).x, HexCoordToVector(a).y);// + 2*PI*(atan2(HexCoordToVector(a).x, HexCoordToVector(a).y) < 0);
-                        }
-                    }
-                    if (k == i-1 && j == 5)
-                    {
-                        if (viewArcs[arcIndex].x == -1)
-                        {
-                            viewArcs[3 * (i-1) * i/2] = (Vector2){0*DEG2RAD,360*DEG2RAD};
-                            printf("clear, arcIndex: %d 0:%d\n", arcIndex, 3 * (i-1) * i/2);
-                        }
-                        else
-                        {
-                            viewArcs[3 * (i-1) * i/2].x = viewArcs[arcIndex].x;
-                            viewArcs[arcIndex].x = -1;
-                        }
-                    }
-                    a = b;
-                }
+                viewArcs[i] = (Vector2){-1, -1};
             }
-            
-            arcIndex = 3 * i * (i+1)/2;
-        }
-        for (int j = 16; j < viewArcsCount; j++)
-        {
-            switch (j)
-            {
-            case 3:
-            case 9:
-            case 18:
-            case 30:
-            case 45:
-            case 63:
-            case 84:
-            case 108:
-            case 135:
-            case 165:
-                printf("Next circle, arcIndex: %d\n", j);
-                break;
-            default:
-                break;
-            }
-            printf("%d: %f, %f\n", j, RAD2DEG * viewArcs[j].x, RAD2DEG * viewArcs[j].y);
-        }
-            tilesToDraw[0] = player;
-            tileCount = 1;
+            puts("");
+            int arcIndex = 0;
             for (int i = 1; i < viewRadius; i++)
             {
-                hexCoord a = hexCoordAdd((hexCoord){-i,i,0},player);
+                printf("Ring: %d\n", i);
+                hexCoord a = HexCoordAdd((hexCoord){-i, i, 0}, player);
                 for (int j = 0; j < 6; j++)
                 {
                     for (int k = 0; k < i; k++)
                     {
-                        float angle = atan2(HexCoordToVector(a).x, HexCoordToVector(a).y);
-                        for (int l = 3 * (i-1) * i/2; l < 3 * i * (i+1)/2; l++)
+                        hexCoord b = HexCoordAdd(a, directionToCoords[j]);
+                        if (GetTile(a) == TILETYPE_WALL)
+                        {
+                            if (viewArcs[arcIndex].y == -1)
+                            {
+                                viewArcs[arcIndex].y = atan2(HexCoordToVector(hexCoordSubtract(a, player)).x, HexCoordToVector(hexCoordSubtract(a, player)).y); // + 2*PI*(atan2(HexCoordToVector(a).x, HexCoordToVector(a).y) < 0);
+                            }
+                            if (GetTile(b) != TILETYPE_WALL)
+                            {
+                                arcIndex++;
+                                viewArcs[arcIndex].x = atan2(HexCoordToVector(hexCoordSubtract(a, player)).x, HexCoordToVector(hexCoordSubtract(a, player)).y); // + 2*PI*(atan2(HexCoordToVector(a).x, HexCoordToVector(a).y) < 0);
+                            }
+                        }
+                        if (k == i - 1 && j == 5)
+                        {
+                            if (viewArcs[arcIndex].x == -1)
+                            {
+                                viewArcs[3 * (i - 1) * i / 2] = (Vector2){-2, -2};
+                                printf("clear, arcIndex: %d 0:%d\n", arcIndex, 3 * (i - 1) * i / 2);
+                            }
+                            else
+                            {
+                                viewArcs[3 * (i - 1) * i / 2].x = viewArcs[arcIndex].x;
+                                viewArcs[arcIndex].x = -1;
+                            }
+                        }
+                        a = b;
+                    }
+                }
+
+                arcIndex = 3 * i * (i + 1) / 2;
+            }
+            for (int j = 0; j < viewArcsCount; j++)
+            {
+                switch (j)
+                {
+                case 3:
+                case 9:
+                case 18:
+                case 30:
+                case 45:
+                case 63:
+                case 84:
+                case 108:
+                case 135:
+                case 165:
+                    printf("Next circle, arcIndex: %d\n", j);
+                    break;
+                default:
+                    break;
+                }
+                printf("%d: %f, %f\n", j, RAD2DEG * viewArcs[j].x, RAD2DEG * viewArcs[j].y);
+            }
+            tilesToDraw[0] = player;
+            tileCount = 1;
+            for (int i = 1; i < viewRadius; i++)
+            {
+                hexCoord a = HexCoordAdd((hexCoord){-i, i, 0}, player);
+                for (int j = 0; j < 6; j++)
+                {
+                    for (int k = 0; k < i; k++)
+                    {
+                        float angle = atan2(HexCoordToVector(hexCoordSubtract(a, player)).x, HexCoordToVector(hexCoordSubtract(a, player)).y);
+                        for (int l = 3 * (i - 1) * i / 2; l < 3 * i * (i + 1) / 2; l++)
                         {
                             if (viewArcs[l].x != -1 && viewArcs[l].y != -1)
                             {
-                                if (angle >= viewArcs[l].x && angle <= viewArcs[l].y)
+                                if ((angle >= viewArcs[l].x && angle <= viewArcs[l].y) || (viewArcs[l].x == -2 && viewArcs[l].y == -2))
                                 {
                                     tilesToDraw[tileCount] = a;
                                     tileCount++;
@@ -568,21 +573,36 @@ int main()
                                 }
                             }
                         }
-                        a = hexCoordAdd(a, directionToCoords[j]);
+                        a = HexCoordAdd(a, directionToCoords[j]);
                     }
                 }
             }
-            
+            reRenderFOV = false;
+        }
 
-         testeridoodle = false;
-        }        
-        
         for (int i = 0; i < tileCount; i++)
         {
             DrawPoly(HexCoordToCameraVector(tilesToDraw[i]), 6, tileRadius, 30, tileColors[GetTile(tilesToDraw[i])]);
             DrawPolyLines(HexCoordToCameraVector(tilesToDraw[i]), 6, tileRadius, 30, BLACK);
         }
-        
+        DrawCircleV(Vector2Lerp(HexCoordToCameraVector(oldPlayer), HexCoordToCameraVector(player), moveLerp), tileRadius * 0.8, (Color){255, 0, 0, 255});
+        for (int i = 0; i < tileCount; i++)
+        {
+            if (GetTile(tilesToDraw[i]) == TILETYPE_WALL)
+            {
+                // DrawPoly(HexCoordToCameraVector(tilesToDraw[i]), 6, tileRadius, 30, tileColors[TILETYPE_WALL]);
+                // DrawPolyLines(HexCoordToCameraVector(tilesToDraw[i]), 6, tileRadius, 30, BLACK);
+                DrawRectangleV(Vector2Add((Vector2){-tileRadius, -tileRadius * 0.5}, HexCoordToCameraVector(tilesToDraw[i])), (Vector2){tileRadius * 2, tileRadius * 0.5}, tileColors[TILETYPE_WALL]);
+            }
+        }
+        for (int i = 0; i < tileCount; i++)
+        {
+            if (GetTile(tilesToDraw[i]) == TILETYPE_WALL)
+            {
+                DrawPoly(Vector2Add((Vector2){0, -tileRadius * 0.5}, HexCoordToCameraVector(tilesToDraw[i])), 6, tileRadius, 30, (Color){200, 150, 0, 255});
+                DrawPolyLines(Vector2Add((Vector2){0, -tileRadius * 0.5}, HexCoordToCameraVector(tilesToDraw[i])), 6, tileRadius, 30, BLACK);
+            }
+        }
 
         /* int visionRadius = 21;
         for (int k = 0; k < mapRadius; k++)
@@ -597,7 +617,7 @@ int main()
                 }
             }
         } */
-        DrawCircleV(Vector2Lerp(HexCoordToCameraVector(oldPlayer),HexCoordToCameraVector(player),moveLerp), tileRadius*0.8, (Color){255,0,0,255});
+        // DrawCircleV(Vector2Lerp(HexCoordToCameraVector(oldPlayer),HexCoordToCameraVector(player),moveLerp), tileRadius*0.8, (Color){255,0,0,255});
         /* for (int i = 0; i < mapRadius; i++)
         {
             for (int j = 0; j < mapRadius; j++)
@@ -646,7 +666,7 @@ int main()
                 }
             }
         } */
-        //DrawCircleV(HexCoordToCameraVector(player), tileRadius*0.8, (Color){255,0,0,255});
+        // DrawCircleV(HexCoordToCameraVector(player), tileRadius*0.8, (Color){255,0,0,255});
         /* for (int i = 0; i < mapRadius; i++)
         {
             for (int j = 0; j < mapRadius; j++)
@@ -672,13 +692,13 @@ int main()
         // visit every tile within i radius
         for (int i = 1; i < viewRadius; i++)
         {
-            hexCoord a = (hexCoord){-i,i,0};
+            hexCoord a = (hexCoord){-i, i, 0};
             for (int j = 0; j < 6; j++)
             {
                 for (int k = 0; k < i; k++)
                 {
-                    hexCoord b = hexCoordAdd(a, directionToCoords[j]);
-                    DrawText(TextFormat("%d",j*i+k), HexCoordToCameraVector(a).x-tileRadius*0.5, HexCoordToCameraVector(a).y-tileRadius*0.8, tileRadius, (Color){0,0,0,20});
+                    hexCoord b = HexCoordAdd(a, directionToCoords[j]);
+                    DrawText(TextFormat("%d", j * i + k), HexCoordToCameraVector(a).x - tileRadius * 0.5, HexCoordToCameraVector(a).y - tileRadius * 0.8, tileRadius, (Color){0, 0, 0, 20});
                     a = b;
                 }
             }
@@ -688,8 +708,13 @@ int main()
         {
             if (viewArcs[i].x != -1)
             {
-                DrawRing(HexCoordToCameraVector(player), tileRadius+i*10,tileRadius+i*10+40, viewArcs[i].x*RAD2DEG, viewArcs[i].y*RAD2DEG, 30, ColorFromHSV(i*20,1,1));
-                DrawRingLines(HexCoordToCameraVector(player), tileRadius+i*10,tileRadius+i*10+40, viewArcs[i].x*RAD2DEG, viewArcs[i].y*RAD2DEG, 30, BLACK);
+                if (viewArcs[i].y == -2)
+                {
+                    DrawRing(HexCoordToCameraVector(player), tileRadius + i * 10, tileRadius + i * 10 + 40, 0, 360, 30, ColorFromHSV(i * 20, 1, 1));
+                    DrawRingLines(HexCoordToCameraVector(player), tileRadius + i * 10, tileRadius + i * 10 + 40, 0, 360, 30, BLACK);
+                }
+                DrawRing(HexCoordToCameraVector(player), tileRadius + i * 10, tileRadius + i * 10 + 40, viewArcs[i].x * RAD2DEG, viewArcs[i].y * RAD2DEG, 30, ColorFromHSV(i * 20, 1, 1));
+                DrawRingLines(HexCoordToCameraVector(player), tileRadius + i * 10, tileRadius + i * 10 + 40, viewArcs[i].x * RAD2DEG, viewArcs[i].y * RAD2DEG, 30, BLACK);
             }
         }
 
