@@ -58,7 +58,7 @@ hexCoord IndexToHexCoord(int q, int r)
     return (hexCoord){q, r, -q - r};
 }
 
-hexCoord hexCoordAdd(hexCoord a, hexCoord b)
+hexCoord HexCoordAdd(hexCoord a, hexCoord b)
 {
     return (hexCoord){a.q + b.q, a.r + b.r, a.s + b.s};
 }
@@ -102,9 +102,9 @@ int main()
     int collisions[antCount];
     for (int i = 0; i < antCount; i++)
     {
-        int a = ((mapRadius/2)-roomRadius-5);
+        int a = ((mapRadius / 2) - roomRadius - 5);
         int q = GetRandomValue(-a, a);
-        int r = GetRandomValue(-a - (q * (q < 0)), a -(q * (q > 0)));
+        int r = GetRandomValue(-a - (q * (q < 0)), a - (q * (q > 0)));
 
         ants[i] = (ant){(hexCoord){q, r, -q - r}, GetRandomValue(0, 5), true};
         printf("ant %d: q: %d, r: %d, s: %d\n", i, ants[i].position.q, ants[i].position.r, ants[i].position.s);
@@ -131,15 +131,12 @@ int main()
                 }
                 ants[i].direction %= 6;
 
-                ants[i].position.q += directionToCoords[ants[i].direction].q;
-                ants[i].position.r += directionToCoords[ants[i].direction].r;
-                ants[i].position.s += directionToCoords[ants[i].direction].s;
+                ants[i].position = HexCoordAdd(ants[i].position, directionToCoords[ants[i].direction]);
 
                 if (
-                    abs(ants[i].position.q) > mapRadius/2 -1 ||
-                    abs(ants[i].position.r) > mapRadius/2 -1 ||
-                    abs(ants[i].position.s) > mapRadius/2 -1
-                )
+                    abs(ants[i].position.q) > mapRadius / 2 - 1 ||
+                    abs(ants[i].position.r) > mapRadius / 2 - 1 ||
+                    abs(ants[i].position.s) > mapRadius / 2 - 1)
                 {
                     ants[i].position.q -= directionToCoords[ants[i].direction].q;
                     ants[i].position.r -= directionToCoords[ants[i].direction].r;
@@ -147,19 +144,19 @@ int main()
                     ants[i].direction = (ants[i].direction + 3) % 6;
                 }
 
-                if (abs(ants[i].position.q) > mapRadius/2)
+                if (abs(ants[i].position.q) > mapRadius / 2)
                 {
                     ants[i].alive = false;
                     printf("ant escaped q%d\n", ants[i].position.q);
                     continue;
                 }
-                if (abs(ants[i].position.r) > mapRadius/2)
+                if (abs(ants[i].position.r) > mapRadius / 2)
                 {
                     ants[i].alive = false;
                     printf("ant escaped r%d\n", ants[i].position.r);
                     continue;
                 }
-                if (abs(ants[i].position.s) > mapRadius/2)
+                if (abs(ants[i].position.s) > mapRadius / 2)
                 {
                     ants[i].alive = false;
                     printf("ant escaped s%d\n", ants[i].position.s);
@@ -188,7 +185,6 @@ int main()
             }
         }
 
-
         aliveAnts = 0;
         for (int i = 0; i < antCount; i++)
         {
@@ -209,7 +205,7 @@ int main()
             if (collisions[j] == i)
             {
                 collisions[j] = collisions[i];
-            }   
+            }
         }
     }
     for (int i = 0; i < antCount; i++)
@@ -227,13 +223,13 @@ int main()
 
     for (int i = 0; i < antCount; i++)
     {
-        for (int j = i+1; j < antCount; j++)
+        for (int j = i + 1; j < antCount; j++)
         {
             if (collisions[j] == collisions[i] && collisions[j] >= 0)
             {
                 collisions[j] = -collisions[j];
             }
-        }    
+        }
     }
 
     for (int i = 0; i < antCount; i++)
@@ -244,18 +240,18 @@ int main()
         }
     }
     printf("\n");
-    
+
     for (int i = 0; i < antCount; i++)
     {
         if (collisions[i] >= 0)
-        {    
+        {
             ant a = ants[collisions[i]];
             while (a.alive)
             {
                 printf("updating ant %d ", collisions[i]);
-                if(a.position.q != 0 && a.position.r != 0)
+                if (a.position.q != 0 && a.position.r != 0)
                 {
-                    hexCoord b = (hexCoord){a.position.q > 0? -1:1, a.position.r > 0? -1:1, a.position.s > 0? -1:1};
+                    hexCoord b = (hexCoord){a.position.q > 0 ? -1 : 1, a.position.r > 0 ? -1 : 1, a.position.s > 0 ? -1 : 1};
                     if (abs(a.position.q) < abs(a.position.r))
                     {
                         if (abs(a.position.q) < abs(a.position.s))
@@ -285,37 +281,37 @@ int main()
 
                     switch (GetTile(a.position))
                     {
-                        case -1:
-                        {
-                            SetTile(a.position, collisions[i]);
-                        }
+                    case -1:
+                    {
+                        SetTile(a.position, collisions[i]);
+                    }
+                    break;
+                    case -2:
                         break;
-                        case -2:
-                        break;
-                        default:
+                    default:
+                    {
+                        /* if (abs(collisions[GetTile(a.position)]) != i)
                         {
-                            /* if (abs(collisions[GetTile(a.position)]) != i)
-                            {
-                                //a.alive = false;
-                                //puts("ant died");
-                                SetTile(a.position, -3);
-                            } */
-                        }
+                            //a.alive = false;
+                            //puts("ant died");
+                            SetTile(a.position, -3);
+                        } */
+                    }
                     }
 
-                    if (abs(a.position.q) > mapRadius/2)
+                    if (abs(a.position.q) > mapRadius / 2)
                     {
                         a.alive = false;
                         printf("ant escaped q%d\n", a.position.q);
                         continue;
                     }
-                    if (abs(a.position.r) > mapRadius/2)
+                    if (abs(a.position.r) > mapRadius / 2)
                     {
                         a.alive = false;
                         printf("ant escaped r%d\n", a.position.r);
                         continue;
                     }
-                    if (abs(a.position.s) > mapRadius/2)
+                    if (abs(a.position.s) > mapRadius / 2)
                     {
                         a.alive = false;
                         printf("ant escaped s%d\n", a.position.s);
@@ -348,16 +344,16 @@ int main()
                     for (int l = 0; l < mapRadius; l++)
                     {
                         hexCoord b = IndexToHexCoord(k, l);
-                        if (abs(a.q - b.q) < roomRadius && abs(a.r - b.r) < roomRadius && abs(a.s - b.s) < roomRadius && abs(b.q) < mapRadius/2 && abs(b.r) < mapRadius/2 && abs(b.s) < mapRadius/2)
+                        if (abs(a.q - b.q) < roomRadius && abs(a.r - b.r) < roomRadius && abs(a.s - b.s) < roomRadius && abs(b.q) < mapRadius / 2 && abs(b.r) < mapRadius / 2 && abs(b.s) < mapRadius / 2)
                         {
                             SetTile(b, TILETYPE_FLOOR);
                         }
                     }
                 }
-                
+
                 // SetTile(IndexToHexCoord(i, j), TILETYPE_HOLE);
             }
-                break;
+            break;
             case -3:
                 SetTile(IndexToHexCoord(i, j), TILETYPE_NONE);
                 break;
@@ -366,11 +362,10 @@ int main()
                 break;
             }
         }
-        
     }
 
-    hexCoord player = (hexCoord){0,0,0};
-    hexCoord oldPlayer = (hexCoord){0,0,0};
+    hexCoord player = (hexCoord){0, 0, 0};
+    hexCoord oldPlayer = (hexCoord){0, 0, 0};
     float moveLerp = 1;
 
     while (!WindowShouldClose())
@@ -400,40 +395,40 @@ int main()
             tileRadius *= 1 - GetFrameTime();
         }
 
-        if (IsKeyDown(KEY_S) && GetTile(hexCoordAdd(player,directionToCoords[0])) != TILETYPE_WALL && moveLerp >= 1)
+        if (IsKeyDown(KEY_S) && GetTile(HexCoordAdd(player, directionToCoords[0])) != TILETYPE_WALL && moveLerp >= 1)
         {
             oldPlayer = player;
-            player = hexCoordAdd(player,directionToCoords[0]);
+            player = HexCoordAdd(player, directionToCoords[0]);
             moveLerp = 0;
         }
-        if (IsKeyDown(KEY_D) && GetTile(hexCoordAdd(player,directionToCoords[1])) != TILETYPE_WALL && moveLerp >= 1)
+        if (IsKeyDown(KEY_D) && GetTile(HexCoordAdd(player, directionToCoords[1])) != TILETYPE_WALL && moveLerp >= 1)
         {
             oldPlayer = player;
-            player = hexCoordAdd(player,directionToCoords[1]);
+            player = HexCoordAdd(player, directionToCoords[1]);
             moveLerp = 0;
         }
-        if (IsKeyDown(KEY_E) && GetTile(hexCoordAdd(player,directionToCoords[2])) != TILETYPE_WALL && moveLerp >= 1)
+        if (IsKeyDown(KEY_E) && GetTile(HexCoordAdd(player, directionToCoords[2])) != TILETYPE_WALL && moveLerp >= 1)
         {
             oldPlayer = player;
-            player = hexCoordAdd(player,directionToCoords[2]);
+            player = HexCoordAdd(player, directionToCoords[2]);
             moveLerp = 0;
         }
-        if (IsKeyDown(KEY_W) && GetTile(hexCoordAdd(player,directionToCoords[3])) != TILETYPE_WALL && moveLerp >= 1)
+        if (IsKeyDown(KEY_W) && GetTile(HexCoordAdd(player, directionToCoords[3])) != TILETYPE_WALL && moveLerp >= 1)
         {
             oldPlayer = player;
-            player = hexCoordAdd(player,directionToCoords[3]);
+            player = HexCoordAdd(player, directionToCoords[3]);
             moveLerp = 0;
         }
-        if (IsKeyDown(KEY_Q) && GetTile(hexCoordAdd(player,directionToCoords[4])) != TILETYPE_WALL && moveLerp >= 1)
+        if (IsKeyDown(KEY_Q) && GetTile(HexCoordAdd(player, directionToCoords[4])) != TILETYPE_WALL && moveLerp >= 1)
         {
             oldPlayer = player;
-            player = hexCoordAdd(player,directionToCoords[4]);
+            player = HexCoordAdd(player, directionToCoords[4]);
             moveLerp = 0;
         }
-        if (IsKeyDown(KEY_A) && GetTile(hexCoordAdd(player,directionToCoords[5])) != TILETYPE_WALL && moveLerp >= 1)
+        if (IsKeyDown(KEY_A) && GetTile(HexCoordAdd(player, directionToCoords[5])) != TILETYPE_WALL && moveLerp >= 1)
         {
             oldPlayer = player;
-            player = hexCoordAdd(player,directionToCoords[5]);
+            player = HexCoordAdd(player, directionToCoords[5]);
             moveLerp = 0;
         }
 
@@ -450,44 +445,44 @@ int main()
 
         if (moveLerp < 1)
         {
-            moveLerp += GetFrameTime()*5;
-            cameraPos = Vector2Lerp(Vector2Add(Vector2Scale(HexCoordToVector(oldPlayer), -1),(Vector2){GetScreenWidth()/2,GetScreenHeight()/2}),Vector2Add(Vector2Scale(HexCoordToVector(player), -1),(Vector2){GetScreenWidth()/2,GetScreenHeight()/2}),moveLerp);
+            moveLerp += GetFrameTime() * 5;
+            cameraPos = Vector2Lerp(Vector2Add(Vector2Scale(HexCoordToVector(oldPlayer), -1), (Vector2){GetScreenWidth() / 2, GetScreenHeight() / 2}), Vector2Add(Vector2Scale(HexCoordToVector(player), -1), (Vector2){GetScreenWidth() / 2, GetScreenHeight() / 2}), moveLerp);
         }
         else
         {
             moveLerp = 1;
-            cameraPos = Vector2Add(Vector2Scale(HexCoordToVector(player), -1),(Vector2){GetScreenWidth()/2,GetScreenHeight()/2});
+            cameraPos = Vector2Add(Vector2Scale(HexCoordToVector(player), -1), (Vector2){GetScreenWidth() / 2, GetScreenHeight() / 2});
         }
 
         BeginDrawing();
         ClearBackground(BLACK);
-        
+
         int visionRadius = 7;
         for (int k = 0; k < mapRadius; k++)
         {
             for (int l = 0; l < mapRadius; l++)
             {
                 hexCoord b = IndexToHexCoord(k, l);
-                if (abs(player.q - b.q) < visionRadius && abs(player.r - b.r) < visionRadius && abs(player.s - b.s) < visionRadius && abs(b.q) <= mapRadius/2 && abs(b.r) <= mapRadius/2 && abs(b.s) <= mapRadius/2)
+                if (abs(player.q - b.q) < visionRadius && abs(player.r - b.r) < visionRadius && abs(player.s - b.s) < visionRadius && abs(b.q) <= mapRadius / 2 && abs(b.r) <= mapRadius / 2 && abs(b.s) <= mapRadius / 2)
                 {
                     DrawPoly(HexCoordToCameraVector(IndexToHexCoord(k, l)), 6, tileRadius, 30, tileColors[GetTile(IndexToHexCoord(k, l))]);
                     DrawPolyLines(HexCoordToCameraVector(IndexToHexCoord(k, l)), 6, tileRadius, 30, BLACK);
                 }
             }
         }
-        DrawCircleV(Vector2Lerp(HexCoordToCameraVector(oldPlayer),HexCoordToCameraVector(player),moveLerp), tileRadius*0.8, (Color){255,0,0,255});
+        DrawCircleV(Vector2Lerp(HexCoordToCameraVector(oldPlayer), HexCoordToCameraVector(player), moveLerp), tileRadius * 0.8, (Color){255, 0, 0, 255});
         for (int i = 0; i < mapRadius; i++)
         {
             for (int j = 0; j < mapRadius; j++)
             {
                 hexCoord b = IndexToHexCoord(i, j);
-                if (abs(player.q - b.q) < visionRadius && abs(player.r - b.r) < visionRadius && abs(player.s - b.s) < visionRadius && abs(b.q) <= mapRadius/2 && abs(b.r) <= mapRadius/2 && abs(b.s) <= mapRadius/2)
+                if (abs(player.q - b.q) < visionRadius && abs(player.r - b.r) < visionRadius && abs(player.s - b.s) < visionRadius && abs(b.q) <= mapRadius / 2 && abs(b.r) <= mapRadius / 2 && abs(b.s) <= mapRadius / 2)
                 {
                     if (GetTile(IndexToHexCoord(i, j)) == TILETYPE_WALL)
                     {
-                        DrawPoly(HexCoordToCameraVector(IndexToHexCoord(i,j)), 6, tileRadius, 30, tileColors[TILETYPE_WALL]);
+                        DrawPoly(HexCoordToCameraVector(IndexToHexCoord(i, j)), 6, tileRadius, 30, tileColors[TILETYPE_WALL]);
                         DrawPolyLines(HexCoordToCameraVector(IndexToHexCoord(i, j)), 6, tileRadius, 30, BLACK);
-                        DrawRectangleV(Vector2Add((Vector2){-tileRadius,-tileRadius*0.5},HexCoordToCameraVector(IndexToHexCoord(i, j))), (Vector2){tileRadius*2,tileRadius*0.5}, tileColors[TILETYPE_WALL]);
+                        DrawRectangleV(Vector2Add((Vector2){-tileRadius, -tileRadius * 0.5}, HexCoordToCameraVector(IndexToHexCoord(i, j))), (Vector2){tileRadius * 2, tileRadius * 0.5}, tileColors[TILETYPE_WALL]);
                     }
                 }
             }
@@ -497,12 +492,12 @@ int main()
             for (int j = 0; j < mapRadius; j++)
             {
                 hexCoord b = IndexToHexCoord(i, j);
-                if (abs(player.q - b.q) < visionRadius && abs(player.r - b.r) < visionRadius && abs(player.s - b.s) < visionRadius && abs(b.q) <= mapRadius/2 && abs(b.r) <= mapRadius/2 && abs(b.s) <= mapRadius/2)
+                if (abs(player.q - b.q) < visionRadius && abs(player.r - b.r) < visionRadius && abs(player.s - b.s) < visionRadius && abs(b.q) <= mapRadius / 2 && abs(b.r) <= mapRadius / 2 && abs(b.s) <= mapRadius / 2)
                 {
                     if (GetTile(IndexToHexCoord(i, j)) == TILETYPE_WALL)
                     {
-                        DrawPoly(Vector2Add((Vector2){0,-tileRadius*0.5},HexCoordToCameraVector(IndexToHexCoord(i, j))), 6, tileRadius, 30, (Color){200,150,0,255});
-                        DrawPolyLines(Vector2Add((Vector2){0,-tileRadius*0.5},HexCoordToCameraVector(IndexToHexCoord(i, j))), 6, tileRadius, 30, BLACK);
+                        DrawPoly(Vector2Add((Vector2){0, -tileRadius * 0.5}, HexCoordToCameraVector(IndexToHexCoord(i, j))), 6, tileRadius, 30, (Color){200, 150, 0, 255});
+                        DrawPolyLines(Vector2Add((Vector2){0, -tileRadius * 0.5}, HexCoordToCameraVector(IndexToHexCoord(i, j))), 6, tileRadius, 30, BLACK);
                     }
                 }
             }
@@ -524,7 +519,7 @@ int main()
                 }
             }
         } */
-        //DrawCircleV(HexCoordToCameraVector(player), tileRadius*0.8, (Color){255,0,0,255});
+        // DrawCircleV(HexCoordToCameraVector(player), tileRadius*0.8, (Color){255,0,0,255});
         /* for (int i = 0; i < mapRadius; i++)
         {
             for (int j = 0; j < mapRadius; j++)
