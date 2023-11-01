@@ -93,13 +93,17 @@ int main()
         (hexCoord){-1, 1, 0},
         (hexCoord){-1, 0, 1}};
 
+    // FIX HERE
     SetRandomSeed(4);
+    // The chance an ant will turn is 1/turnChanceDenominator
     int turnChanceDenominator = 3;
     int antCount = 60;
     int aliveAnts = antCount;
     int roomRadius = 4;
     ant ants[antCount];
+    // The index that an ant collides with is stored here
     int collisions[antCount];
+    // Place the ants randomly
     for (int i = 0; i < antCount; i++)
     {
         int a = ((mapRadius / 2) - roomRadius - 5);
@@ -110,6 +114,7 @@ int main()
         printf("ant %d: q: %d, r: %d, s: %d\n", i, ants[i].position.q, ants[i].position.r, ants[i].position.s);
     }
 
+    // Set all tiles to -1 to indicate that no ant has been there
     for (int i = 0; i < mapRadius * 2; i++)
     {
         for (int j = 0; j < mapRadius * 2; j++)
@@ -118,21 +123,24 @@ int main()
         }
     }
 
+    // First pass of terrain generation
     while (aliveAnts > 0)
     {
         for (int i = 0; i < antCount; i++)
         {
             if (ants[i].alive)
             {
-
+                // Determine if the ant should turn
                 if (GetRandomValue(0, turnChanceDenominator) == 0)
                 {
                     ants[i].direction += (GetRandomValue(0, 1) == 0 ? -1 : 1);
                 }
                 ants[i].direction %= 6;
 
+                // Move the ant
                 ants[i].position = HexCoordAdd(ants[i].position, directionToCoords[ants[i].direction]);
 
+                // If the ant is out of bounds, turn around
                 if (
                     abs(ants[i].position.q) > mapRadius / 2 - 1 ||
                     abs(ants[i].position.r) > mapRadius / 2 - 1 ||
@@ -144,6 +152,8 @@ int main()
                     ants[i].direction = (ants[i].direction + 3) % 6;
                 }
 
+                // If the rest of the code works this should be redundant but the the issue could be hard to find without these console messages
+                // FIX HERE
                 if (abs(ants[i].position.q) > mapRadius / 2)
                 {
                     ants[i].alive = false;
@@ -167,6 +177,7 @@ int main()
                 {
                 case -1:
                 {
+                    // If the ant is on an unexplored tile, set the tile to the ant's index
                     SetTile(ants[i].position, i);
                 }
                 break;
@@ -174,6 +185,7 @@ int main()
                 {
                     if (GetTile(ants[i].position) != i)
                     {
+                        // If the ant is on a tile that has been explored by another ant, kill the ant, track the collision and set the tile to -2 for a room to be created later
                         ants[i].alive = false;
                         puts("ant died");
                         collisions[i] = GetTile(ants[i].position);
@@ -198,6 +210,8 @@ int main()
     }
     printf("\n");
 
+    // Second pass of terrain generation
+    // Calculate the amount of separated networks of ant trails by replacing the value of each collision with the value at the index the value points to
     for (int i = 0; i < antCount; i++)
     {
         for (int j = 0; j < antCount; j++)
@@ -208,9 +222,10 @@ int main()
             }
         }
     }
+
+    // Reanimate one ant from each network
     for (int i = 0; i < antCount; i++)
     {
-        SetTile(ants[collisions[i]].position, -2);
         ants[collisions[i]].alive = true;
     }
 
@@ -221,6 +236,8 @@ int main()
     }
     printf("aliveAnts: %d\n", aliveAnts);
 
+    // Set all non relevant collisions to -1 to avoid double updating an ant. This shouldn't be neccesary with the chosen method of connecting networks
+    // FIX HERE
     for (int i = 0; i < antCount; i++)
     {
         for (int j = i + 1; j < antCount; j++)
@@ -241,6 +258,7 @@ int main()
     }
     printf("\n");
 
+    // Move all alive ants to the center of the map
     for (int i = 0; i < antCount; i++)
     {
         if (collisions[i] >= 0)
@@ -251,6 +269,7 @@ int main()
                 printf("updating ant %d ", collisions[i]);
                 if (a.position.q != 0 && a.position.r != 0)
                 {
+                    // Finding the way towards the center of the map
                     hexCoord b = (hexCoord){a.position.q > 0 ? -1 : 1, a.position.r > 0 ? -1 : 1, a.position.s > 0 ? -1 : 1};
                     if (abs(a.position.q) < abs(a.position.r))
                     {
@@ -274,11 +293,10 @@ int main()
                             b.s = 0;
                         }
                     }
-                    a.position.q += b.q;
-                    a.position.r += b.r;
-                    a.position.s += b.s;
+                    a.position = HexCoordAdd(a.position, b);
                     printf("q: %d, r: %d, s: %d\n", a.position.q, a.position.r, a.position.s);
 
+                    // FIX HERE
                     switch (GetTile(a.position))
                     {
                     case -1:
@@ -299,6 +317,7 @@ int main()
                     }
                     }
 
+                    // FIX HERE
                     if (abs(a.position.q) > mapRadius / 2)
                     {
                         a.alive = false;
@@ -327,6 +346,7 @@ int main()
     }
     puts("done");
 
+    // Interpret the map
     for (int i = 0; i < mapRadius; i++)
     {
         for (int j = 0; j < mapRadius; j++)
@@ -334,10 +354,13 @@ int main()
             switch (GetTile(IndexToHexCoord(i, j)))
             {
             case -1:
+                // All unexplored tiles are walls
                 SetTile(IndexToHexCoord(i, j), TILETYPE_WALL);
                 break;
             case -2:
             {
+                // All collisions are rooms
+                // Room for optimization here by only accessing the tiles that are within the room radius
                 hexCoord a = IndexToHexCoord(i, j);
                 for (int k = 0; k < mapRadius; k++)
                 {
@@ -354,6 +377,7 @@ int main()
                 // SetTile(IndexToHexCoord(i, j), TILETYPE_HOLE);
             }
             break;
+            // FIX HERE
             case -3:
                 SetTile(IndexToHexCoord(i, j), TILETYPE_NONE);
                 break;
@@ -363,13 +387,18 @@ int main()
             }
         }
     }
+    // Set the player's tile to floor
 
     hexCoord player = (hexCoord){0, 0, 0};
     hexCoord oldPlayer = (hexCoord){0, 0, 0};
+    // 1 means the player is at the new position, 0 means the player is at the old position
     float moveLerp = 1;
 
     while (!WindowShouldClose())
     {
+        // -----
+        // Input
+        // -----
         if (IsKeyDown(KEY_UP))
         {
             cameraPos.y += moveSpeed * GetFrameTime();
@@ -443,6 +472,7 @@ int main()
 
         } */
 
+        // Lerp the camera for smother movement
         if (moveLerp < 1)
         {
             moveLerp += GetFrameTime() * 5;
@@ -457,7 +487,10 @@ int main()
         BeginDrawing();
         ClearBackground(BLACK);
 
+        // Draw the tiles within the player's vision
+        // Room for optimization here by only accessing the tiles that are within the player's vision
         int visionRadius = 7;
+        // First pass for floor tiles
         for (int k = 0; k < mapRadius; k++)
         {
             for (int l = 0; l < mapRadius; l++)
@@ -470,7 +503,9 @@ int main()
                 }
             }
         }
+        // Player
         DrawCircleV(Vector2Lerp(HexCoordToCameraVector(oldPlayer), HexCoordToCameraVector(player), moveLerp), tileRadius * 0.8, (Color){255, 0, 0, 255});
+        // Second pass for the walls' walls
         for (int i = 0; i < mapRadius; i++)
         {
             for (int j = 0; j < mapRadius; j++)
@@ -487,6 +522,7 @@ int main()
                 }
             }
         }
+        // Third pass for the top of the walls
         for (int i = 0; i < mapRadius; i++)
         {
             for (int j = 0; j < mapRadius; j++)
@@ -506,11 +542,11 @@ int main()
         {
             for (int j = 0; j < mapRadius; j++)
             {
-                if (abs(IndexToHexCoord(i,j).s) < mapRadius/2+1)
-                {
-                    DrawPoly(HexCoordToCameraVector(IndexToHexCoord(i, j)), 6, tileRadius, 30, tileColors[GetTile(IndexToHexCoord(i, j))]);
-                    DrawPolyLines(HexCoordToCameraVector(IndexToHexCoord(i, j)), 6, tileRadius, 30, BLACK);
-                }
+                // if (abs(IndexToHexCoord(i,j).s) < mapRadius/2+1)
+                // {
+                //     DrawPoly(HexCoordToCameraVector(IndexToHexCoord(i, j)), 6, tileRadius, 30, tileColors[GetTile(IndexToHexCoord(i, j))]);
+                //     DrawPolyLines(HexCoordToCameraVector(IndexToHexCoord(i, j)), 6, tileRadius, 30, BLACK);
+                // }
 
                 // write coordinates of the tile under the mouse
                 if (CheckCollisionPointCircle(GetMousePosition(), HexCoordToCameraVector(IndexToHexCoord(i, j)), tileRadius))
