@@ -388,6 +388,7 @@ int main()
         }
     }
     // Set the player's tile to floor
+    SetTile((hexCoord){0, 0, 0}, TILETYPE_FLOOR);
 
     hexCoord player = (hexCoord){0, 0, 0};
     hexCoord oldPlayer = (hexCoord){0, 0, 0};
