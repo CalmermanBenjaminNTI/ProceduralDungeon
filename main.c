@@ -296,45 +296,9 @@ int main()
                     a.position = HexCoordAdd(a.position, b);
                     printf("q: %d, r: %d, s: %d\n", a.position.q, a.position.r, a.position.s);
 
-                    // FIX HERE
-                    switch (GetTile(a.position))
-                    {
-                    case -1:
+                    if (GetTile(a.position) == -1)
                     {
                         SetTile(a.position, collisions[i]);
-                    }
-                    break;
-                    case -2:
-                        break;
-                    default:
-                    {
-                        /* if (abs(collisions[GetTile(a.position)]) != i)
-                        {
-                            //a.alive = false;
-                            //puts("ant died");
-                            SetTile(a.position, -3);
-                        } */
-                    }
-                    }
-
-                    // FIX HERE
-                    if (abs(a.position.q) > mapRadius / 2)
-                    {
-                        a.alive = false;
-                        printf("ant escaped q%d\n", a.position.q);
-                        continue;
-                    }
-                    if (abs(a.position.r) > mapRadius / 2)
-                    {
-                        a.alive = false;
-                        printf("ant escaped r%d\n", a.position.r);
-                        continue;
-                    }
-                    if (abs(a.position.s) > mapRadius / 2)
-                    {
-                        a.alive = false;
-                        printf("ant escaped s%d\n", a.position.s);
-                        continue;
                     }
                 }
                 else
@@ -377,10 +341,6 @@ int main()
                 // SetTile(IndexToHexCoord(i, j), TILETYPE_HOLE);
             }
             break;
-            // FIX HERE
-            case -3:
-                SetTile(IndexToHexCoord(i, j), TILETYPE_NONE);
-                break;
             default:
                 SetTile(IndexToHexCoord(i, j), TILETYPE_FLOOR);
                 break;
