@@ -93,8 +93,8 @@ int main()
         (hexCoord){-1, 1, 0},
         (hexCoord){-1, 0, 1}};
 
-    // FIX HERE
-    SetRandomSeed(4);
+    // There are probably way better things to seed from
+    SetRandomSeed((int)(&moveSpeed));
     // The chance an ant will turn is 1/turnChanceDenominator
     int turnChanceDenominator = 3;
     int antCount = 60;
