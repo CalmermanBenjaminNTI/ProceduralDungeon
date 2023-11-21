@@ -6,6 +6,26 @@
 #include "raylib.h"
 #include "raymath.h"
 
+// Sebbe's suggestion
+/* typedef enum tile_state_e {
+    TILE_STATE_NONE,
+    TILE_STATE_VISITED,
+    TILE_STATE_VISIBLE
+} tile_state_e;
+
+typedef enum tile_type_e {
+    TILE_TYPE_NONE,
+    TILE_TYPE_FLOOR,
+    TILE_TYPE_WALL,
+} tile_type_e:
+
+
+typedef struct tile_t {
+    tile_state_e state;
+    tile_type_e type;
+} tile_t;
+ */
+
 typedef enum TILETYPE
 {
     TILETYPE_NONE,
@@ -112,7 +132,7 @@ int main()
         int r = GetRandomValue(-a - (q * (q < 0)), a - (q * (q > 0)));
 
         ants[i] = (ant){(hexCoord){q, r, -q - r}, GetRandomValue(0, 5), true};
-        printf("ant %d: q: %d, r: %d, s: %d\n", i, ants[i].position.q, ants[i].position.r, ants[i].position.s);
+        // printf("ant %d: q: %d, r: %d, s: %d\n", i, ants[i].position.q, ants[i].position.r, ants[i].position.s);
     }
 
     for (int i = 0; i < mapRadius * 2; i++)
@@ -152,19 +172,19 @@ int main()
                 if (abs(ants[i].position.q) > mapRadius / 2)
                 {
                     ants[i].alive = false;
-                    printf("ant escaped q%d\n", ants[i].position.q);
+                    // printf("ant escaped q%d\n", ants[i].position.q);
                     continue;
                 }
                 if (abs(ants[i].position.r) > mapRadius / 2)
                 {
                     ants[i].alive = false;
-                    printf("ant escaped r%d\n", ants[i].position.r);
+                    // printf("ant escaped r%d\n", ants[i].position.r);
                     continue;
                 }
                 if (abs(ants[i].position.s) > mapRadius / 2)
                 {
                     ants[i].alive = false;
-                    printf("ant escaped s%d\n", ants[i].position.s);
+                    // printf("ant escaped s%d\n", ants[i].position.s);
                     continue;
                 }
 
@@ -199,9 +219,9 @@ int main()
 
     for (int i = 0; i < antCount; i++)
     {
-        printf("%d ", collisions[i]);
+        // printf("%d ", collisions[i]);
     }
-    printf("\n");
+    // printf("\n");
 
     for (int i = 0; i < antCount; i++)
     {
@@ -224,7 +244,7 @@ int main()
     {
         aliveAnts += ants[i].alive;
     }
-    printf("aliveAnts: %d\n", aliveAnts);
+    // printf("aliveAnts: %d\n", aliveAnts);
 
     for (int i = 0; i < antCount; i++)
     {
@@ -241,10 +261,10 @@ int main()
     {
         if (collisions[i] >= 0)
         {
-            printf("%d ", collisions[i]);
+            // printf("%d ", collisions[i]);
         }
     }
-    printf("\n");
+    // printf("\n");
 
     for (int i = 0; i < antCount; i++)
     {
@@ -253,7 +273,7 @@ int main()
             ant a = ants[collisions[i]];
             while (a.alive)
             {
-                printf("updating ant %d ", collisions[i]);
+                // printf("updating ant %d ", collisions[i]);
                 if (a.position.q != 0 && a.position.r != 0)
                 {
                     hexCoord b = (hexCoord){a.position.q > 0 ? -1 : 1, a.position.r > 0 ? -1 : 1, a.position.s > 0 ? -1 : 1};
@@ -282,7 +302,7 @@ int main()
                     a.position.q += b.q;
                     a.position.r += b.r;
                     a.position.s += b.s;
-                    printf("q: %d, r: %d, s: %d\n", a.position.q, a.position.r, a.position.s);
+                    // printf("q: %d, r: %d, s: %d\n", a.position.q, a.position.r, a.position.s);
 
                     switch (GetTile(a.position))
                     {
@@ -307,19 +327,19 @@ int main()
                     if (abs(a.position.q) > mapRadius / 2)
                     {
                         a.alive = false;
-                        printf("ant escaped q%d\n", a.position.q);
+                        // printf("ant escaped q%d\n", a.position.q);
                         continue;
                     }
                     if (abs(a.position.r) > mapRadius / 2)
                     {
                         a.alive = false;
-                        printf("ant escaped r%d\n", a.position.r);
+                        // printf("ant escaped r%d\n", a.position.r);
                         continue;
                     }
                     if (abs(a.position.s) > mapRadius / 2)
                     {
                         a.alive = false;
-                        printf("ant escaped s%d\n", a.position.s);
+                        // printf("ant escaped s%d\n", a.position.s);
                         continue;
                     }
                 }
@@ -330,7 +350,7 @@ int main()
             }
         }
     }
-    puts("done");
+    // puts("done");
 
     for (int i = 0; i < mapRadius; i++)
     {
@@ -481,55 +501,78 @@ int main()
 
         int tileCount;
 
-        // visit every tile within i radius
+        // Visit every tile within i radius
         if (reRenderFOV)
         {
+            // Reset viewArcs
             for (int i = 0; i < viewArcsCount; i++)
             {
                 viewArcs[i] = (Vector2){-1, -1};
             }
             puts("");
+            printf("Player: %d, %d, %d\n", player.q, player.r, player.s);
             int arcIndex = 0;
+            // For every ring until the view radius
             for (int i = 1; i < viewRadius; i++)
             {
                 printf("Ring: %d\n", i);
-                hexCoord a = HexCoordAdd((hexCoord){-i, i, 0}, player);
+                // Initial tile to check
+                hexCoord a = (hexCoord){-i, i, 0};
+                // For each side of the hexagonal area
                 for (int j = 0; j < 6; j++)
                 {
+                    // Check as many tiles as the radius of the ring
                     for (int k = 0; k < i; k++)
                     {
+                        // Walk around the ring
+                        // Next tile to check
                         hexCoord b = HexCoordAdd(a, directionToCoords[j]);
-                        if (GetTile(a) == TILETYPE_WALL)
+                        
+                        // The actual tile position
+                        hexCoord c = HexCoordAdd(a,player);
+                        printf("a: %d, %d, %d c: %d, %d, %d\n", a.q, a.r, a.s, c.q, c.r, c.s);
+
+                        // If the tile is a wall
+                        if (GetTile(HexCoordAdd(a, player)) == TILETYPE_WALL)
                         {
+                            // If the second value of the arc is unassigned assign it to the angle of the tile
                             if (viewArcs[arcIndex].y == -1)
                             {
-                                viewArcs[arcIndex].y = atan2(HexCoordToVector(hexCoordSubtract(a, player)).x, HexCoordToVector(hexCoordSubtract(a, player)).y); // + 2*PI*(atan2(HexCoordToVector(a).x, HexCoordToVector(a).y) < 0);
+                                viewArcs[arcIndex].y = atan2(HexCoordToVector(a).x, HexCoordToVector(a).y); // + 2*PI*(atan2(HexCoordToVector(a).x, HexCoordToVector(a).y) < 0);
                             }
-                            if (GetTile(b) != TILETYPE_WALL)
+
+                            // If the following tile is not a wall set the first value of the next arc to the angle of the tile
+                            if (GetTile(HexCoordAdd(b, player)) != TILETYPE_WALL)
                             {
                                 arcIndex++;
-                                viewArcs[arcIndex].x = atan2(HexCoordToVector(hexCoordSubtract(a, player)).x, HexCoordToVector(hexCoordSubtract(a, player)).y); // + 2*PI*(atan2(HexCoordToVector(a).x, HexCoordToVector(a).y) < 0);
+                                viewArcs[arcIndex].x = atan2(HexCoordToVector(a).x, HexCoordToVector(a).y); // + 2*PI*(atan2(HexCoordToVector(a).x, HexCoordToVector(a).y) < 0);
                             }
                         }
+                        // If the tile is the last tile of the last edge of this ring
                         if (k == i - 1 && j == 5)
                         {
+                            // If the the first value of the arc is unassigned there has only been one arc and so it is a fully clear ring
                             if (viewArcs[arcIndex].x == -1)
                             {
+                                // Set both values to -2 to indicate that the ring is clear
                                 viewArcs[3 * (i - 1) * i / 2] = (Vector2){-2, -2};
                                 printf("clear, arcIndex: %d 0:%d\n", arcIndex, 3 * (i - 1) * i / 2);
                             }
                             else
                             {
+                                // If the first value of the arc is assigned there are at least two arcs and so the first arc's first value should be set to the last arc's second value
                                 viewArcs[3 * (i - 1) * i / 2].x = viewArcs[arcIndex].x;
                                 viewArcs[arcIndex].x = -1;
                             }
                         }
+                        // Check the next tile
                         a = b;
                     }
                 }
-
+                // Move to the first arc of the next ring
                 arcIndex = 3 * i * (i + 1) / 2;
             }
+            // For all view arcs
             for (int j = 0; j < viewArcsCount; j++)
             {
                 switch (j)
@@ -552,22 +595,26 @@ int main()
                 printf("%d: %f, %f\n", j, RAD2DEG * viewArcs[j].x, RAD2DEG * viewArcs[j].y);
             }
             tilesToDraw[0] = player;
-            tileCount = 1;
-            for (int i = 1; i < viewRadius; i++)
+            for (int i = 0; i < 6; i++)
             {
-                hexCoord a = HexCoordAdd((hexCoord){-i, i, 0}, player);
+                tilesToDraw[i + 1] = HexCoordAdd(player, directionToCoords[i]);
+            }
+            tileCount = 7;
+            for (int i = 2; i < viewRadius; i++)
+            {
+                hexCoord a = (hexCoord){-i, i, 0};
                 for (int j = 0; j < 6; j++)
                 {
                     for (int k = 0; k < i; k++)
                     {
-                        float angle = atan2(HexCoordToVector(hexCoordSubtract(a, player)).x, HexCoordToVector(hexCoordSubtract(a, player)).y);
+                        float angle = atan2(HexCoordToVector(a).x, HexCoordToVector(a).y);
                         for (int l = 3 * (i - 1) * i / 2; l < 3 * i * (i + 1) / 2; l++)
                         {
                             if (viewArcs[l].x != -1 && viewArcs[l].y != -1)
                             {
                                 if ((angle >= viewArcs[l].x && angle <= viewArcs[l].y) || (viewArcs[l].x == -2 && viewArcs[l].y == -2))
                                 {
-                                    tilesToDraw[tileCount] = a;
+                                    tilesToDraw[tileCount] = HexCoordAdd(a, player);
                                     tileCount++;
                                     break;
                                 }
@@ -692,7 +739,7 @@ int main()
         // visit every tile within i radius
         for (int i = 1; i < viewRadius; i++)
         {
-            hexCoord a = (hexCoord){-i, i, 0};
+            hexCoord a = HexCoordAdd(player, (hexCoord){-i, i, 0});
             for (int j = 0; j < 6; j++)
             {
                 for (int k = 0; k < i; k++)
