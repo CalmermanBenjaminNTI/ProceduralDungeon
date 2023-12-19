@@ -540,24 +540,26 @@ int main()
             for (int j = 0; j < mapRadius; j++)
             {
                 hexCoord b = IndexToHexCoord(i, j);
-                if (
-                    abs(player.q - b.q) < visionRadius &&
-                    abs(player.r - b.r) < visionRadius && 
-                    abs(player.s - b.s) < visionRadius && 
-                    abs(b.q) <= mapRadius / 2 && 
+                if (abs(b.q) <= mapRadius / 2 && 
                     abs(b.r) <= mapRadius / 2 && 
                     abs(b.s) <= mapRadius / 2)
                 {
                     if (GetTile(IndexToHexCoord(i, j)) == TILETYPE_WALL)
                     {
-                        DrawPoly(
-                            Vector2Add((Vector2){0, -tileRadius * 0.5},
-                                HexCoordToCameraVector(IndexToHexCoord(i, j))),
-                            6, tileRadius, 30, (Color){200, 150, 0, 255});
-                        DrawPolyLines(
-                            Vector2Add((Vector2){0, -tileRadius * 0.5},
-                                HexCoordToCameraVector(IndexToHexCoord(i, j))),
-                            6, tileRadius, 30, BLACK);
+                        if (
+                            abs(player.q - b.q) < visionRadius &&
+                            abs(player.r - b.r) < visionRadius && 
+                            abs(player.s - b.s) < visionRadius)
+                        {
+                            DrawPoly(
+                                Vector2Add((Vector2){0, -tileRadius * 0.5},
+                                    HexCoordToCameraVector(IndexToHexCoord(i, j))),
+                                6, tileRadius, 30, (Color){200, 150, 0, 255});
+                            DrawPolyLines(
+                                Vector2Add((Vector2){0, -tileRadius * 0.5},
+                                    HexCoordToCameraVector(IndexToHexCoord(i, j))),
+                                6, tileRadius, 30, BLACK);
+                        }
                     }
                 }
             }
