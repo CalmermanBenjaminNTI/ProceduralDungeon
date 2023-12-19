@@ -331,7 +331,14 @@ int main()
                     for (int l = 0; l < mapRadius; l++)
                     {
                         hexCoord b = IndexToHexCoord(k, l);
-                        if (abs(a.q - b.q) < roomRadius && abs(a.r - b.r) < roomRadius && abs(a.s - b.s) < roomRadius && abs(b.q) < mapRadius / 2 && abs(b.r) < mapRadius / 2 && abs(b.s) < mapRadius / 2)
+                        if (
+                            abs(a.q - b.q) < roomRadius &&
+                            abs(a.r - b.r) < roomRadius &&
+                            abs(a.s - b.s) < roomRadius &&
+                            abs(b.q) < mapRadius / 2 &&
+                            abs(b.r) < mapRadius / 2 &&
+                            abs(b.s) < mapRadius / 2
+                        )
                         {
                             SetTile(b, TILETYPE_FLOOR);
                         }
