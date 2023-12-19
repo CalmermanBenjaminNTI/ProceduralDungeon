@@ -270,7 +270,10 @@ int main()
                 if (a.position.q != 0 && a.position.r != 0)
                 {
                     // Finding the way towards the center of the map
-                    hexCoord b = (hexCoord){a.position.q > 0 ? -1 : 1, a.position.r > 0 ? -1 : 1, a.position.s > 0 ? -1 : 1};
+                    hexCoord b = (hexCoord){
+                        a.position.q > 0 ? -1 : 1,
+                        a.position.r > 0 ? -1 : 1,
+                        a.position.s > 0 ? -1 : 1};
                     if (abs(a.position.q) < abs(a.position.r))
                     {
                         if (abs(a.position.q) < abs(a.position.s))
@@ -337,8 +340,7 @@ int main()
                             abs(a.s - b.s) < roomRadius &&
                             abs(b.q) < mapRadius / 2 &&
                             abs(b.r) < mapRadius / 2 &&
-                            abs(b.s) < mapRadius / 2
-                        )
+                            abs(b.s) < mapRadius / 2)
                         {
                             SetTile(b, TILETYPE_FLOOR);
                         }
@@ -392,41 +394,50 @@ int main()
             tileRadius *= 1 - GetFrameTime();
         }
 
-        if (IsKeyDown(KEY_S) && GetTile(HexCoordAdd(player, directionToCoords[0])) != TILETYPE_WALL && moveLerp >= 1)
+        if (moveLerp >= 1)
         {
-            oldPlayer = player;
-            player = HexCoordAdd(player, directionToCoords[0]);
-            moveLerp = 0;
-        }
-        if (IsKeyDown(KEY_D) && GetTile(HexCoordAdd(player, directionToCoords[1])) != TILETYPE_WALL && moveLerp >= 1)
-        {
-            oldPlayer = player;
-            player = HexCoordAdd(player, directionToCoords[1]);
-            moveLerp = 0;
-        }
-        if (IsKeyDown(KEY_E) && GetTile(HexCoordAdd(player, directionToCoords[2])) != TILETYPE_WALL && moveLerp >= 1)
-        {
-            oldPlayer = player;
-            player = HexCoordAdd(player, directionToCoords[2]);
-            moveLerp = 0;
-        }
-        if (IsKeyDown(KEY_W) && GetTile(HexCoordAdd(player, directionToCoords[3])) != TILETYPE_WALL && moveLerp >= 1)
-        {
-            oldPlayer = player;
-            player = HexCoordAdd(player, directionToCoords[3]);
-            moveLerp = 0;
-        }
-        if (IsKeyDown(KEY_Q) && GetTile(HexCoordAdd(player, directionToCoords[4])) != TILETYPE_WALL && moveLerp >= 1)
-        {
-            oldPlayer = player;
-            player = HexCoordAdd(player, directionToCoords[4]);
-            moveLerp = 0;
-        }
-        if (IsKeyDown(KEY_A) && GetTile(HexCoordAdd(player, directionToCoords[5])) != TILETYPE_WALL && moveLerp >= 1)
-        {
-            oldPlayer = player;
-            player = HexCoordAdd(player, directionToCoords[5]);
-            moveLerp = 0;
+            if (IsKeyDown(KEY_S) &&
+                GetTile(HexCoordAdd(player, directionToCoords[0])) != TILETYPE_WALL)
+            {
+                oldPlayer = player;
+                player = HexCoordAdd(player, directionToCoords[0]);
+                moveLerp = 0;
+            }
+            if (IsKeyDown(KEY_D) &&
+                GetTile(HexCoordAdd(player, directionToCoords[1])) != TILETYPE_WALL)
+            {
+                oldPlayer = player;
+                player = HexCoordAdd(player, directionToCoords[1]);
+                moveLerp = 0;
+            }
+            if (IsKeyDown(KEY_E) &&
+                GetTile(HexCoordAdd(player, directionToCoords[2])) != TILETYPE_WALL)
+            {
+                oldPlayer = player;
+                player = HexCoordAdd(player, directionToCoords[2]);
+                moveLerp = 0;
+            }
+            if (IsKeyDown(KEY_W) &&
+                GetTile(HexCoordAdd(player, directionToCoords[3])) != TILETYPE_WALL)
+            {
+                oldPlayer = player;
+                player = HexCoordAdd(player, directionToCoords[3]);
+                moveLerp = 0;
+            }
+            if (IsKeyDown(KEY_Q) &&
+                GetTile(HexCoordAdd(player, directionToCoords[4])) != TILETYPE_WALL)
+            {
+                oldPlayer = player;
+                player = HexCoordAdd(player, directionToCoords[4]);
+                moveLerp = 0;
+            }
+            if (IsKeyDown(KEY_A) &&
+                GetTile(HexCoordAdd(player, directionToCoords[5])) != TILETYPE_WALL)
+            {
+                oldPlayer = player;
+                player = HexCoordAdd(player, directionToCoords[5]);
+                moveLerp = 0;
+            }
         }
 
         /* for (int i = 0; i < 20; i++)
@@ -444,12 +455,19 @@ int main()
         if (moveLerp < 1)
         {
             moveLerp += GetFrameTime() * 5;
-            cameraPos = Vector2Lerp(Vector2Add(Vector2Scale(HexCoordToVector(oldPlayer), -1), (Vector2){GetScreenWidth() / 2, GetScreenHeight() / 2}), Vector2Add(Vector2Scale(HexCoordToVector(player), -1), (Vector2){GetScreenWidth() / 2, GetScreenHeight() / 2}), moveLerp);
+            cameraPos = Vector2Lerp(
+                Vector2Add(Vector2Scale(HexCoordToVector(oldPlayer), -1),
+                    (Vector2){GetScreenWidth() / 2, GetScreenHeight() / 2}),
+                Vector2Add(Vector2Scale(HexCoordToVector(player), -1),
+                    (Vector2){GetScreenWidth() / 2, GetScreenHeight() / 2}),
+                moveLerp
+            );
         }
         else
         {
             moveLerp = 1;
-            cameraPos = Vector2Add(Vector2Scale(HexCoordToVector(player), -1), (Vector2){GetScreenWidth() / 2, GetScreenHeight() / 2});
+            cameraPos = Vector2Add(Vector2Scale(HexCoordToVector(player), -1),
+                (Vector2){GetScreenWidth() / 2, GetScreenHeight() / 2});
         }
 
         BeginDrawing();
@@ -464,28 +482,54 @@ int main()
             for (int l = 0; l < mapRadius; l++)
             {
                 hexCoord b = IndexToHexCoord(k, l);
-                if (abs(player.q - b.q) < visionRadius && abs(player.r - b.r) < visionRadius && abs(player.s - b.s) < visionRadius && abs(b.q) <= mapRadius / 2 && abs(b.r) <= mapRadius / 2 && abs(b.s) <= mapRadius / 2)
+                if (
+                    abs(player.q - b.q) < visionRadius &&
+                    abs(player.r - b.r) < visionRadius &&
+                    abs(player.s - b.s) < visionRadius &&
+                    abs(b.q) <= mapRadius / 2 &&
+                    abs(b.r) <= mapRadius / 2 &&
+                    abs(b.s) <= mapRadius / 2)
                 {
-                    DrawPoly(HexCoordToCameraVector(IndexToHexCoord(k, l)), 6, tileRadius, 30, tileColors[GetTile(IndexToHexCoord(k, l))]);
-                    DrawPolyLines(HexCoordToCameraVector(IndexToHexCoord(k, l)), 6, tileRadius, 30, BLACK);
+                    DrawPoly(HexCoordToCameraVector(IndexToHexCoord(k, l)),
+                        6, tileRadius, 30, tileColors[GetTile(IndexToHexCoord(k, l))]);
+                    DrawPolyLines(HexCoordToCameraVector(IndexToHexCoord(k, l)),
+                        6, tileRadius, 30, BLACK);
                 }
             }
         }
         // Player
-        DrawCircleV(Vector2Lerp(HexCoordToCameraVector(oldPlayer), HexCoordToCameraVector(player), moveLerp), tileRadius * 0.8, (Color){255, 0, 0, 255});
+        DrawCircleV(
+            Vector2Lerp(HexCoordToCameraVector(oldPlayer),
+                HexCoordToCameraVector(player), moveLerp),
+            tileRadius * 0.8, (Color){255, 0, 0, 255});
+
         // Second pass for the walls' walls
         for (int i = 0; i < mapRadius; i++)
         {
             for (int j = 0; j < mapRadius; j++)
             {
                 hexCoord b = IndexToHexCoord(i, j);
-                if (abs(player.q - b.q) < visionRadius && abs(player.r - b.r) < visionRadius && abs(player.s - b.s) < visionRadius && abs(b.q) <= mapRadius / 2 && abs(b.r) <= mapRadius / 2 && abs(b.s) <= mapRadius / 2)
+                if (
+                    abs(player.q - b.q) < visionRadius &&
+                    abs(player.r - b.r) < visionRadius &&
+                    abs(player.s - b.s) < visionRadius &&
+                    abs(b.q) <= mapRadius / 2 &&
+                    abs(b.r) <= mapRadius / 2 &&
+                    abs(b.s) <= mapRadius / 2)
                 {
                     if (GetTile(IndexToHexCoord(i, j)) == TILETYPE_WALL)
                     {
-                        DrawPoly(HexCoordToCameraVector(IndexToHexCoord(i, j)), 6, tileRadius, 30, tileColors[TILETYPE_WALL]);
-                        DrawPolyLines(HexCoordToCameraVector(IndexToHexCoord(i, j)), 6, tileRadius, 30, BLACK);
-                        DrawRectangleV(Vector2Add((Vector2){-tileRadius, -tileRadius * 0.5}, HexCoordToCameraVector(IndexToHexCoord(i, j))), (Vector2){tileRadius * 2, tileRadius * 0.5}, tileColors[TILETYPE_WALL]);
+                        DrawPoly(
+                            HexCoordToCameraVector(IndexToHexCoord(i, j)),
+                            6, tileRadius, 30, tileColors[TILETYPE_WALL]);
+                        DrawPolyLines(
+                            HexCoordToCameraVector(IndexToHexCoord(i, j)),
+                            6, tileRadius, 30, BLACK);
+                        DrawRectangleV(
+                            Vector2Add((Vector2){-tileRadius, -tileRadius * 0.5},
+                                HexCoordToCameraVector(IndexToHexCoord(i, j))),
+                            (Vector2){tileRadius * 2, tileRadius * 0.5},
+                            tileColors[TILETYPE_WALL]);
                     }
                 }
             }
@@ -496,12 +540,24 @@ int main()
             for (int j = 0; j < mapRadius; j++)
             {
                 hexCoord b = IndexToHexCoord(i, j);
-                if (abs(player.q - b.q) < visionRadius && abs(player.r - b.r) < visionRadius && abs(player.s - b.s) < visionRadius && abs(b.q) <= mapRadius / 2 && abs(b.r) <= mapRadius / 2 && abs(b.s) <= mapRadius / 2)
+                if (
+                    abs(player.q - b.q) < visionRadius &&
+                    abs(player.r - b.r) < visionRadius && 
+                    abs(player.s - b.s) < visionRadius && 
+                    abs(b.q) <= mapRadius / 2 && 
+                    abs(b.r) <= mapRadius / 2 && 
+                    abs(b.s) <= mapRadius / 2)
                 {
                     if (GetTile(IndexToHexCoord(i, j)) == TILETYPE_WALL)
                     {
-                        DrawPoly(Vector2Add((Vector2){0, -tileRadius * 0.5}, HexCoordToCameraVector(IndexToHexCoord(i, j))), 6, tileRadius, 30, (Color){200, 150, 0, 255});
-                        DrawPolyLines(Vector2Add((Vector2){0, -tileRadius * 0.5}, HexCoordToCameraVector(IndexToHexCoord(i, j))), 6, tileRadius, 30, BLACK);
+                        DrawPoly(
+                            Vector2Add((Vector2){0, -tileRadius * 0.5},
+                                HexCoordToCameraVector(IndexToHexCoord(i, j))),
+                            6, tileRadius, 30, (Color){200, 150, 0, 255});
+                        DrawPolyLines(
+                            Vector2Add((Vector2){0, -tileRadius * 0.5},
+                                HexCoordToCameraVector(IndexToHexCoord(i, j))),
+                            6, tileRadius, 30, BLACK);
                     }
                 }
             }
